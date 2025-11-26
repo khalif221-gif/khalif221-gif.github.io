@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grammaire Interactive CM1/CM2 - Progression</title>
+    <style>
+        /* --- STYLE CSS (Design) --- */
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-sidebar: #ffffff;
+            --bg-main: #f3f4f6;
+            --text-main: #1f2937;
+            --border: #e5e7eb;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --success-bg: #dcfce7;
+            --error-bg: #fee2e2;
+            --gold: #fbbf24;
+            --silver: #d1d5db;
+            --bronze: #f97316;
+        }
+
+        * { box-sizing: border-box; }
+        body { 
+			margin: 0; 
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+			min-height: 100vh; 
+			display: flex; 
+			flex-direction: row;
+			color: var(--text-main); 
+			background-color: var(--bg-main); 
+			overflow: hidden; 
+		}
+		
+        /* Sidebar */
+        #sidebar { 
+			width: 280px; 
+			max-width: 100%;
+			background: var(--bg-sidebar); 
+			display: flex; 
+			flex-direction: column; 
+			border-right: 1px solid var(--border); 
+			overflow-y: auto; 
+			flex-shrink: 0; 
+		}
+
+		.sidebar-header { background: var(--primary); color: white; padding: 20px; }
+        .sidebar-header h1 { margin: 0; font-size: 1.2rem; }
+        .sidebar-header p { margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9; }
+        
+        /* Profil utilisateur */
+        .user-profile { padding: 15px 20px; background: #f9fafb; border-bottom: 2px solid var(--border); }
+        .user-profile h3 { margin: 0 0 10px; font-size: 1rem; color: var(--text-main); }
+        .progress-bar { width: 100%; height: 20px; background: #e5e7eb; border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #3b82f6); transition: width 0.5s; }
+        .stats { display: flex; justify-content: space-between; font-size: 0.85rem; color: #6b7280; }
+        .stat-item { display: flex; align-items: center; gap: 5px; }
+        .badge-mini { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; }
+        .badge-gold { background: var(--gold); color: white; }
+        .badge-silver { background: var(--silver); color: #374151; }
+        .badge-bronze { background: var(--bronze); color: white; }
+
+        /* Navigation */
+        .nav-btn { width: 100%; text-align: left; padding: 12px 20px; background: none; border: none; border-left: 4px solid transparent; cursor: pointer; font-size: 0.9rem; color: #4b5563; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .nav-btn:hover:not(.locked) { background-color: #f9fafb; }
+        .nav-btn.active { background-color: #eff6ff; border-left-color: var(--primary); color: var(--primary); font-weight: 600; }
+        .nav-btn.locked { opacity: 0.4; cursor: not-allowed; }
+        .nav-btn.completed { color: var(--success); font-weight: 500; }
+        .chapter-status { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: #e5e7eb; color: #6b7280; }
+        .chapter-status.complete { background: var(--success-bg); color: var(--success); }
+
+        /* Main Content */
+        #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        header { background: white; padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        header h2 { margin: 0; font-size: 1.5rem; }
+        .header-score { display: flex; gap: 15px; align-items: center; }
+        .score-badge { padding: 8px 15px; background: var(--success-bg); color: var(--success); border-radius: 20px; font-weight: 600; font-size: 0.9rem; }
+
+        /* Tabs */
+        #tabs { display: flex; padding: 15px 30px 0; background: #f9fafb; border-bottom: 1px solid var(--border); overflow-x: auto; }
+        .tab-btn { padding: 10px 20px; border: none; background: none; cursor: pointer; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; margin-right: 5px; border-radius: 5px 5px 0 0; position: relative; }
+        .tab-btn:hover:not(.locked) { color: var(--text-main); background: #e5e7eb; }
+        .tab-btn.active { background: white; color: var(--primary); border-bottom: 2px solid var(--primary); }
+        .tab-btn.locked { opacity: 0.4; cursor: not-allowed; }
+        .tab-btn.completed::after { content: '✓'; position: absolute; top: 5px; right: 5px; color: var(--success); font-weight: bold; font-size: 0.8rem; }
+
+        /* Exercise Area */
+        #content-area { flex: 1; overflow-y: auto; padding: 30px; }
+        .container { max-width: 800px; margin: 0 auto; padding-bottom: 50px; }
+        .exercise-intro { margin-bottom: 25px; }
+        .exercise-intro h3 { margin: 0 0 5px; font-size: 1.3rem; }
+        .exercise-intro p { margin: 0; color: #6b7280; font-size: 0.9rem; }
+
+        /* Score Display */
+        .score-display { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid var(--border); text-align: center; }
+        .score-display.show { border-color: var(--primary); }
+        .score-number { font-size: 2.5rem; font-weight: bold; color: var(--primary); }
+        .score-text { color: #6b7280; margin-top: 5px; }
+        .score-message { margin-top: 15px; padding: 15px; border-radius: 8px; font-weight: 600; }
+        .score-message.success { background: var(--success-bg); color: var(--success); }
+        .score-message.warning { background: #fef3c7; color: #92400e; }
+
+        /* Badge Unlock Animation */
+        .badge-unlock { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); z-index: 1000; text-align: center; transition: transform 0.5s; }
+        .badge-unlock.show { transform: translate(-50%, -50%) scale(1); }
+        .badge-icon { width: 100px; height: 100px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; animation: bounce 0.6s; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .badge-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .badge-overlay.show { display: block; }
+
+        /* Cards & Inputs */
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid var(--border); }
+        .question-text { font-weight: 600; margin-bottom: 15px; display: block; font-size: 1.05rem; }
+        
+        .btn-option { display: block; width: 100%; text-align: left; padding: 12px; margin-bottom: 8px; border: 1px solid #d1d5db; border-radius: 6px; background: white; cursor: pointer; transition: all 0.2s; }
+        .btn-option:hover { background: #f3f4f6; }
+        .btn-option.selected { background: #eff6ff; border-color: var(--primary); color: var(--primary-dark); }
+        
+        /* Feedback Styles */
+        .correct { background-color: var(--success-bg) !important; border-color: var(--success) !important; color: #14532d !important; }
+        .incorrect { background-color: var(--error-bg) !important; border-color: var(--error) !important; color: #7f1d1d !important; }
+        .feedback-text { font-size: 0.9rem; margin-top: 8px; font-weight: 600; }
+        .text-success { color: var(--success); }
+        .text-info { color: var(--primary); }
+
+        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; }
+        input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary); ring: 2px solid var(--primary); }
+
+        /* Matching Grid */
+        .matching-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center; margin-bottom: 15px; padding: 10px; background: #f9fafb; border-radius: 6px; }
+
+        /* True/False Buttons */
+        .tf-container { display: flex; gap: 10px; }
+        .tf-btn { flex: 1; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; font-weight: bold; background: #f3f4f6; }
+        .tf-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Action Buttons */
+        .action-btn { padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 1rem; transition: transform 0.1s; }
+        .action-btn:active { transform: scale(0.98); }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-check { background: var(--primary); color: white; }
+        .btn-check:hover:not(:disabled) { background: var(--primary-dark); }
+        .btn-reset { background: #4b5563; color: white; margin-right: 10px; }
+        .btn-reset:hover { background: #374151; }
+        .btn-next { background: var(--success); color: white; }
+        .btn-next:hover { background: #16a34a; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        /* Locked Overlay */
+        .locked-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #d1d5db; z-index: 10; }
+    
+		/* --- RESPONSIVE --- */
+
+		/* Tablettes et en-dessous */
+		@media (max-width: 1024px) {
+			body {
+				overflow: auto; /* On laisse la page défiler */
+			}
+
+			header {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 10px;
+			}
+
+			.header-score {
+				width: 100%;
+				justify-content: flex-start;
+				flex-wrap: wrap;
+			}
+
+			#tabs {
+				padding: 10px 10px 0;
+			}
+
+			.container {
+				padding: 0 10px 40px;
+				max-width: 100%;
+			}
+
+			.matching-row {
+				grid-template-columns: 1fr; /* Une colonne sur mobile */
+			}
+
+			.card {
+				padding: 15px;
+			}
+		}
+
+		/* Mobiles : on met la sidebar au-dessus du contenu */
+		@media (max-width: 768px) {
+			body {
+				flex-direction: column;
+				overflow: auto;
+			}
+
+			#sidebar {
+				width: 100%;
+				height: auto;
+				max-height: 260px; /* pour éviter qu’elle prenne tout l’écran */
+				border-right: none;
+				border-bottom: 1px solid var(--border);
+			}
+
+			#main {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				overflow: visible;
+			}
+
+			header {
+				padding: 15px 15px;
+			}
+
+			#content-area {
+				padding: 15px;
+			}
+
+			.user-profile {
+				padding: 10px 15px;
+			}
+
+			.nav-btn {
+				padding: 10px 15px;
+				font-size: 0.85rem;
+			}
+
+			.exercise-intro h3 {
+				font-size: 1.1rem;
+			}
+
+			.btn-option {
+				font-size: 0.9rem;
+				padding: 10px;
+			}
+
+			.tf-container {
+				flex-direction: column;
+			}
+
+			.tf-btn {
+				width: 100%;
+			}
+
+			.badge-unlock {
+				width: 90%;
+				max-width: 400px;
+				padding: 25px 20px;
+			}
+		}
+
+		/* Très petits écrans */
+		@media (max-width: 480px) {
+			.sidebar-header h1 {
+				font-size: 1rem;
+			}
+			.sidebar-header p {
+				font-size: 0.8rem;
+			}
+
+			.stats {
+				flex-wrap: wrap;
+				gap: 6px;
+			}
+
+			.question-text {
+				font-size: 0.95rem;
+			}
+
+			.action-btn {
+				width: 100%;
+				margin-bottom: 8px;
+			}
+
+			#btn-next {
+				width: 100%;
+			}
+		}
+	
+	</style>
+</head>
+<body>
+
+    <!-- Badge Unlock Overlay -->
+    <div id="badge-overlay" class="badge-overlay"></div>
+    <div id="badge-unlock" class="badge-unlock">
+        <div id="badge-icon" class="badge-icon"></div>
+        <h2 id="badge-title" style="margin: 0 0 10px; color: var(--text-main);">Bravo !</h2>
+        <p id="badge-message" style="color: #6b7280; margin: 0;">Vous avez débloqué un badge !</p>
+        <button onclick="closeBadge()" style="margin-top: 20px; padding: 10px 30px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Continuer</button>
+    </div>
+
+    <!-- Sidebar de navigation -->
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h1>Grammaire CM1/CM2</h1>
+            <p>Exercices Interactifs</p>
+        </div>
+        
+        <!-- Profil utilisateur -->
+        <div class="user-profile">
+            <h3>👤 Mon Parcours</h3>
+            <div class="progress-bar">
+                <div id="global-progress" class="progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>🏆</span>
+                    <span id="total-badges">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>✅</span>
+                    <span id="total-completed">0/60</span>
+                </div>
+                <div class="stat-item">
+                    <span>⭐</span>
+                    <span id="total-score">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="chapter-list">
+            <!-- Les chapitres seront générés ici par JS -->
+        </div>
+    </div>
+
+    <!-- Zone principale -->
+    <div id="main">
+        <header>
+            <h2 id="chapter-title">Titre du chapitre</h2>
+            <div class="header-score">
+                <div id="current-score" class="score-badge" style="display: none;">Score: 0/5</div>
+            </div>
+        </header>
+        
+        <div id="tabs">
+            <!-- Les onglets d'exercices seront générés ici -->
+        </div>
+
+        <div id="content-area">
+            <div class="container">
+                <!-- Score Display -->
+                <div id="score-display" class="score-display" style="display: none;">
+                    <div class="score-number" id="score-number">0/5</div>
+                    <div class="score-text">Bonnes réponses</div>
+                    <div id="score-message" class="score-message"></div>
+                </div>
+
+                <div class="exercise-intro">
+                    <h3 id="exercise-title">Titre Exercice</h3>
+                    <p>Complétez l'exercice ci-dessous.</p>
+                </div>
+                
+                <div id="exercise-container" style="position: relative;">
+                    <!-- Le contenu de l'exercice sera généré ici -->
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button id="btn-reset" class="action-btn btn-reset" onclick="resetExercise()" style="display: none;">Recommencer</button>
+                    <button id="btn-action" class="action-btn btn-check" onclick="checkAnswers()">Vérifier mes réponses</button>
+                    <button id="btn-next" class="action-btn btn-next" onclick="goToNextExercise()" style="display: none;">Exercice suivant →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DONNÉES (Mêmes données que précédemment) ---
+        const grammarData = [
+          {
+            id: 1,
+            title: "1. La Phrase : types et ponctuation",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : QCM (Type de phrase)",
+                questions: [
+                  { q: "Quel âge as-tu ?", options: ["Déclarative", "Exclamative", "Interrogative", "Impérative"], answer: 2 },
+                  { q: "Range ta chambre immédiatement !", options: ["Déclarative", "Exclamative", "Interrogative", "Impérative"], answer: 3 },
+                  { q: "J'aime beaucoup les chocolats.", options: ["Déclarative", "Exclamative", "Interrogative", "Impérative"], answer: 0 },
+                  { q: "Quelle belle journée !", options: ["Déclarative", "Exclamative", "Interrogative", "Impérative"], answer: 1 },
+                  { q: "Pourquoi ne manges-tu pas ta soupe ?", options: ["Déclarative", "Exclamative", "Interrogative", "Impérative"], answer: 2 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Relier (Phrase et Ponctuation)",
+                pairs: [
+                  { left: "Peux-tu m'aider", right: "?" },
+                  { left: "Il pleut des cordes", right: "." },
+                  { left: "Quelle chance tu as", right: "!" },
+                  { left: "Apportez-moi votre travail", right: "." },
+                  { left: "Ramasse tes affaires", right: "!" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "Une phrase commence toujours par une majuscule.", answer: true },
+                  { q: "Une phrase se termine toujours par un point simple (.).", answer: false },
+                  { q: "La phrase injonctive (ou impérative) sert à poser une question.", answer: false },
+                  { q: "La phrase exclamative exprime un sentiment ou une émotion.", answer: true },
+                  { q: "On peut relier deux phrases par une virgule.", answer: false }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Texte à trou (Ponctuation)",
+                questions: [
+                  { text: "Où as-tu mis mes lunettes", answer: "?" },
+                  { text: "Je suis si fier de toi", answer: "!" },
+                  { text: "Le chien court dans le jardin", answer: "." },
+                  { text: "Quel est votre nom", answer: "?" },
+                  { text: "Ne touche pas à cela", answer: "!" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 5 : Transformation",
+                questions: [
+                  { q: "Il fait beau aujourd'hui. (Exclamative)", hint: "Qu'il fait beau aujourd'hui !" },
+                  { q: "Tu aimes les frites. (Interrogative)", hint: "Aimes-tu les frites ?" },
+                  { q: "Tu éteins la lumière. (Impérative)", hint: "Éteins la lumière !" },
+                  { q: "Il a rangé sa chambre. (Interrogative)", hint: "A-t-il rangé sa chambre ?" },
+                  { q: "J'ai eu peur. (Exclamative)", hint: "J'ai eu peur !" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 6 : Identifier le type",
+                questions: [
+                  { q: "Lavez-vous les mains.", answer: "Impérative" },
+                  { q: "Les oiseaux chantent.", answer: "Déclarative" },
+                  { q: "Que fais-tu ici ?", answer: "Interrogative" },
+                  { q: "Quelle chance j'ai !", answer: "Exclamative" },
+                  { q: "Le train est en retard.", answer: "Déclarative" }
+                ]
+              }
+            ]
+          },
+          {
+            id: 2,
+            title: "2. Le Nom : commun vs propre",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : Trouver le nom propre",
+                questions: [
+                  { q: "chat, ville, Paris, maison", options: ["chat", "ville", "Paris", "maison"], answer: 2 },
+                  { q: "Marie, enfant, école, livre", options: ["Marie", "enfant", "école", "livre"], answer: 0 },
+                  { q: "pomme, Noël, fête, arbre", options: ["pomme", "Noël", "fête", "arbre"], answer: 1 },
+                  { q: "océan, pays, Atlantique, montagne", options: ["océan", "pays", "Atlantique", "montagne"], answer: 2 },
+                  { q: "jour, semaine, mois, Lundi", options: ["jour", "semaine", "mois", "Lundi"], answer: 3 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Relier Nom et Catégorie",
+                pairs: [
+                  { left: "Vendeur", right: "Nom commun" },
+                  { left: "France", right: "Nom propre" },
+                  { left: "Fleuve", right: "Nom commun" },
+                  { left: "Rhône", right: "Nom propre" },
+                  { left: "Éléphant", right: "Nom commun" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "Un nom commun désigne une personne, un animal ou une chose en général.", answer: true },
+                  { q: "Un nom propre prend toujours une minuscule.", answer: false },
+                  { q: "Le mot 'professeur' est un nom propre.", answer: false },
+                  { q: "On peut mettre un déterminant devant un nom propre (ex: le Paris).", answer: false },
+                  { q: "Jupiter est un nom propre.", answer: true }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Nom commun ou propre ?",
+                questions: [
+                  { text: "J'habite en ____ (Pays).", answer: "France" },
+                  { text: "Mon ____ (Animal) aime jouer.", answer: "chien" },
+                  { text: "Nous étudions à l'école ____ (Écrivain).", answer: "Victor Hugo" },
+                  { text: "As-tu lu ce ____ (Objet) ?", answer: "livre" },
+                  { text: "J'irai voir la ____ (Monument) cet été.", answer: "Tour Eiffel" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 5 : Identifier (NC = Nom Commun, NP = Nom Propre)",
+                questions: [
+                  { q: "La Seine", answer: "NP" },
+                  { q: "un grand fleuve", answer: "NC" },
+                  { q: "Mon chat", answer: "NC" },
+                  { q: "Filou", answer: "NP" },
+                  { q: "Marseille", answer: "NP" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 6 : Écriture",
+                questions: [
+                  { q: "Le nom de ta ville (Nom Propre)", hint: "Ex: Lyon" },
+                  { q: "Un meuble de la cuisine (Nom Commun)", hint: "Ex: table" },
+                  { q: "Le nom de ton meilleur ami (Nom Propre)", hint: "Ex: Léo" },
+                  { q: "Un vêtement (Nom Commun)", hint: "Ex: pull" },
+                  { q: "Le nom de ton pays (Nom Propre)", hint: "Ex: France" }
+                ]
+              }
+            ]
+          },
+          {
+            id: 3,
+            title: "3. Le Déterminant",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : Quel est le déterminant ?",
+                questions: [
+                  { q: "Le chien court vite.", options: ["chien", "court", "Le", "vite"], answer: 2 },
+                  { q: "Il mange une pomme.", options: ["Il", "mange", "une", "pomme"], answer: 2 },
+                  { q: "Voici mon vélo bleu.", options: ["Voici", "vélo", "bleu", "mon"], answer: 3 },
+                  { q: "J'ai lu plusieurs livres.", options: ["J'ai", "lu", "plusieurs", "livres"], answer: 2 },
+                  { q: "Cet arbre est haut.", options: ["Cet", "arbre", "est", "haut"], answer: 0 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Relier Déterminant et Nom",
+                pairs: [
+                  { left: "La", right: "maison" },
+                  { left: "Ces", right: "chapeaux" },
+                  { left: "Un", right: "garçon" },
+                  { left: "Mes", right: "crayons" },
+                  { left: "Cette", right: "fleur" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "Le déterminant est placé devant le nom.", answer: true },
+                  { q: "Le déterminant donne le genre et le nombre du nom.", answer: true },
+                  { q: "Les déterminants possessifs sont 'le', 'la', 'les'.", answer: false },
+                  { q: "Le mot 'grand' est un déterminant.", answer: false },
+                  { q: "Un nom peut être utilisé sans déterminant (sauf noms propres).", answer: false }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Complétez",
+                questions: [
+                  { text: "____ voiture est rouge. (Le/La)", answer: "La" },
+                  { text: "J'ai vu ____ chat. (un/une)", answer: "un" },
+                  { text: "Où est ____ cahier ? (ma/mon)", answer: "mon" },
+                  { text: "____ enfants jouent. (Ce/Ces)", answer: "Ces" },
+                  { text: "____ avion décolle. (Le/L')", answer: "L'" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 5 : Soulignez le déterminant",
+                questions: [
+                  { q: "Le vieux livre", answer: "Le" },
+                  { q: "Une grande idée", answer: "Une" },
+                  { q: "Mon petit frère", answer: "Mon" },
+                  { q: "Des jolies fleurs", answer: "Des" },
+                  { q: "Ces arbres verts", answer: "Ces" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 6 : Phrase avec déterminant",
+                questions: [
+                  { q: "Utilisez : Le", hint: "Le soleil..." },
+                  { q: "Utilisez : Une", hint: "Une pomme..." },
+                  { q: "Utilisez : Ses", hint: "Ses amis..." },
+                  { q: "Utilisez : Ce", hint: "Ce vélo..." },
+                  { q: "Utilisez : Des", hint: "Des bonbons..." }
+                ]
+              }
+            ]
+          },
+          {
+            id: 4,
+            title: "4. Le Groupe Nominal (GN)",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : Quel est le GN simple ?",
+                questions: [
+                  { q: "Le chien court vite.", options: ["Le", "Le chien", "court", "vite"], answer: 1 },
+                  { q: "J'ai acheté une nouvelle robe.", options: ["J'ai", "acheté", "une robe", "nouvelle robe"], answer: 2 },
+                  { q: "Mon père travaille ici.", options: ["Mon", "Mon père", "travaille", "ici"], answer: 1 },
+                  { q: "Léa lit des contes.", options: ["Léa", "lit", "des contes", "lit des"], answer: 2 },
+                  { q: "Cette maison est grande.", options: ["Cette maison", "est", "grande", "est grande"], answer: 0 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Former un GN",
+                pairs: [
+                  { left: "Une", right: "tortue" },
+                  { left: "Des", right: "nuages" },
+                  { left: "Mon", right: "stylo" },
+                  { left: "La", right: "montagne" },
+                  { left: "Le", right: "journal" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "Un GN simple est toujours composé d'un Déterminant et d'un Nom.", answer: true },
+                  { q: "Le Nom est le 'chef' du Groupe Nominal.", answer: true },
+                  { q: "Le Groupe Nominal peut être uniquement un nom propre.", answer: true },
+                  { q: "Le déterminant 'les' indique un nom au singulier.", answer: false },
+                  { q: "La petite fille est un GN simple (Dét + Nom).", answer: false }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Complétez le GN",
+                questions: [
+                  { text: "Une grande ____ est à vendre.", answer: "maison" },
+                  { text: "J'ai perdu mon ____.", answer: "cartable" },
+                  { text: "Regarde ces ____ qui volent.", answer: "oiseaux" },
+                  { text: "Le ____ brille fort.", answer: "soleil" },
+                  { text: "Mon ____ arrive ce soir.", answer: "oncle" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 5 : Identifier le GN (Dét + Nom)",
+                questions: [
+                  { q: "Le chat dort sur le tapis.", answer: "Le chat / le tapis" },
+                  { q: "Un éléphant mange des feuilles.", answer: "Un éléphant / des feuilles" },
+                  { q: "La maîtresse donne un exercice.", answer: "La maîtresse / un exercice" },
+                  { q: "Mon vélo est crevé.", answer: "Mon vélo" },
+                  { q: "Des pommes sont sur la table.", answer: "Des pommes / la table" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 6 : Créer un GN",
+                questions: [
+                  { q: "Un animal (féminin, singulier)", hint: "Ex: la vache" },
+                  { q: "Une chose (masculin, singulier)", hint: "Ex: un mur" },
+                  { q: "Une personne (pluriel)", hint: "Ex: les enfants" },
+                  { q: "Un objet de classe (masculin, singulier)", hint: "Ex: le tableau" },
+                  { q: "Un fruit (pluriel)", hint: "Ex: des fraises" }
+                ]
+              }
+            ]
+          },
+          {
+            id: 5,
+            title: "5. Le Verbe",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : Quel est le verbe ?",
+                questions: [
+                  { q: "Le chat dort sur le lit.", options: ["chat", "dort", "sur", "lit"], answer: 1 },
+                  { q: "Nous mangeons des frites.", options: ["Nous", "mangeons", "des", "frites"], answer: 1 },
+                  { q: "Elle va à l'école.", options: ["Elle", "va", "à", "école"], answer: 1 },
+                  { q: "Vous écrivez une lettre.", options: ["Vous", "écrivez", "une", "lettre"], answer: 1 },
+                  { q: "Ils jouent au ballon.", options: ["Ils", "jouent", "au", "ballon"], answer: 1 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Verbe et Infinitif",
+                pairs: [
+                  { left: "Fait", right: "Faire" },
+                  { left: "Sont", right: "Être" },
+                  { left: "Allons", right: "Aller" },
+                  { left: "Cherches", right: "Chercher" },
+                  { left: "Dit", right: "Dire" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "Le verbe sert à indiquer l'action faite par le sujet.", answer: true },
+                  { q: "L'infinitif se trouve à la fin du verbe conjugué.", answer: false },
+                  { q: "Pour trouver le verbe, on peut utiliser la forme négative (ne...pas).", answer: true },
+                  { q: "Le verbe est la partie de la phrase qui ne change jamais.", answer: false },
+                  { q: "Dans 'je suis grand', le verbe est 'suis'.", answer: true }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Verbe à l'infinitif",
+                questions: [
+                  { text: "J'aime ____ avec mes amis. (Chant)", answer: "chanter" },
+                  { text: "Tu dois ____ tes devoirs. (Fait)", answer: "faire" },
+                  { text: "Elle va ____ chez sa grand-mère. (Dort)", answer: "dormir" },
+                  { text: "Il faut ____ pour réussir. (Travail)", answer: "travailler" },
+                  { text: "Nous voulons ____ en vacances. (Part)", answer: "partir" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 5 : Donner l'infinitif",
+                questions: [
+                  { q: "Le bébé pleure.", answer: "Pleurer" },
+                  { q: "Vous voyez la mer.", answer: "Voir" },
+                  { q: "Nous prenons le bus.", answer: "Prendre" },
+                  { q: "Tu es malade.", answer: "Être" },
+                  { q: "Ils finissent vite.", answer: "Finir" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 6 : Phrase avec verbe",
+                questions: [
+                  { q: "Manger", hint: "Il mange..." },
+                  { q: "Parler", hint: "Je parle..." },
+                  { q: "Avoir", hint: "Nous avons..." },
+                  { q: "Venir", hint: "Ils viennent..." },
+                  { q: "Sauter", hint: "Le chat saute..." }
+                ]
+              }
+            ]
+          },
+          {
+            id: 6,
+            title: "6. Le Sujet du verbe",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : Quel est le sujet ?",
+                questions: [
+                  { q: "Le chien court très vite.", options: ["très vite", "court", "Le", "Le chien"], answer: 3 },
+                  { q: "Demain, elle ira à Paris.", options: ["Demain", "elle", "ira", "à Paris"], answer: 1 },
+                  { q: "Mon père et ma mère voyagent beaucoup.", options: ["beaucoup", "voyagent", "Mon père", "Mon père et ma mère"], answer: 3 },
+                  { q: "Où sont mes clés ?", options: ["Où", "sont", "mes clés", "clés"], answer: 2 },
+                  { q: "Nous jouons dans le parc.", options: ["dans le parc", "jouons", "Nous", "le parc"], answer: 2 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Relier Phrase et Sujet",
+                pairs: [
+                  { left: "Mon frère aime le chocolat.", right: "Mon frère" },
+                  { left: "Les oiseaux volent haut.", right: "Les oiseaux" },
+                  { left: "Elle est très gentille.", right: "Elle" },
+                  { left: "Les élèves travaillent bien.", right: "Les élèves" },
+                  { left: "Je suis fatigué.", right: "Je" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "Le sujet est celui ou ce qui fait l'action du verbe.", answer: true },
+                  { q: "Pour trouver le sujet, on pose la question 'Quoi ?'.", answer: false },
+                  { q: "Le sujet est toujours un pronom personnel.", answer: false },
+                  { q: "Le sujet est toujours placé juste avant le verbe.", answer: false },
+                  { q: "Le sujet et le verbe s'accordent en nombre et en personne.", answer: true }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Complétez le sujet",
+                questions: [
+                  { text: "____ mange une glace. (Je/Tu/Il)", answer: "Je" },
+                  { text: "____ jouent à la corde. (Les filles/Le chien)", answer: "Les filles" },
+                  { text: "____ allons au cinéma. (Nous/Vous/Ils)", answer: "Nous" },
+                  { text: "____ prépare le repas. (Mon père/Ma mère)", answer: "Mon père" },
+                  { text: "____ roule vite. (Le vélo/L'ami)", answer: "Le vélo" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 5 : Identifier le sujet",
+                questions: [
+                  { q: "Mon ami chante une chanson.", answer: "Mon ami" },
+                  { q: "Le soleil brille dans le ciel.", answer: "Le soleil" },
+                  { q: "Quand partira ce train ?", answer: "ce train" },
+                  { q: "Nous prenons le petit déjeuner.", answer: "Nous" },
+                  { q: "La voiture est garée ici.", answer: "La voiture" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 6 : Phrase avec sujet",
+                questions: [
+                  { q: "Pronom personnel", hint: "Elle lit." },
+                  { q: "Nom propre", hint: "Pierre sourit." },
+                  { q: "GN simple", hint: "Un chat miaule." },
+                  { q: "GN plus long", hint: "Le petit oiseau vole." },
+                  { q: "Sujet pluriel", hint: "Les enfants rient." }
+                ]
+              }
+            ]
+          },
+          {
+            id: 7,
+            title: "7. L'Adjectif Qualificatif",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : Quel est l'adjectif ?",
+                questions: [
+                  { q: "Le petit chien aboie.", options: ["Le", "petit", "chien", "aboie"], answer: 1 },
+                  { q: "J'ai une fleur rouge.", options: ["J'ai", "une", "fleur", "rouge"], answer: 3 },
+                  { q: "Voici un grand immeuble.", options: ["Voici", "un", "grand", "immeuble"], answer: 2 },
+                  { q: "Les enfants joyeux jouent.", options: ["Les", "enfants", "joyeux", "jouent"], answer: 2 },
+                  { q: "Elle porte un joli chapeau.", options: ["Elle", "porte", "un", "joli"], answer: 3 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Relier Nom et Adjectif",
+                pairs: [
+                  { left: "Un gâteau", right: "sucré" },
+                  { left: "Une fleur", right: "parfumée" },
+                  { left: "Des chaussures", right: "neuves" },
+                  { left: "Le ciel", right: "bleu" },
+                  { left: "Les jours", right: "chauds" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "L'adjectif donne des précisions sur le verbe.", answer: false },
+                  { q: "L'adjectif s'accorde en genre et en nombre avec le nom.", answer: true },
+                  { q: "L'adjectif est toujours placé après le nom qu'il qualifie.", answer: false },
+                  { q: "Dans 'cette table est belle', 'belle' est un adjectif attribut.", answer: true },
+                  { q: "Le mot 'vite' est un adjectif.", answer: false }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Accord de l'adjectif",
+                questions: [
+                  { text: "Elle a une robe ____ (vert).", answer: "verte" },
+                  { text: "J'aime les chats ____ (noir).", answer: "noirs" },
+                  { text: "Ce sont des fleurs ____ (jaune).", answer: "jaunes" },
+                  { text: "Mon vélo est ____ (cassé).", answer: "cassé" },
+                  { text: "C'est une histoire ____ (ancien).", answer: "ancienne" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 5 : Identifier l'adjectif",
+                questions: [
+                  { q: "Un petit garçon", answer: "petit" },
+                  { q: "La table ronde", answer: "ronde" },
+                  { q: "Des mauvaises nouvelles", answer: "mauvaises" },
+                  { q: "Mon beau vélo", answer: "beau" },
+                  { q: "Une histoire drôle", answer: "drôle" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 6 : Phrase avec adjectif",
+                questions: [
+                  { q: "Maison / grande", hint: "La grande maison..." },
+                  { q: "Enfants / joyeux", hint: "Les enfants sont joyeux..." },
+                  { q: "Couleur / bleue", hint: "J'aime la couleur bleue..." },
+                  { q: "Chien / méchant", hint: "Ce chien est méchant..." },
+                  { q: "Cahiers / neufs", hint: "J'ai des cahiers neufs..." }
+                ]
+              }
+            ]
+          },
+          {
+            id: 8,
+            title: "8. La fonction COD",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : Quel est le COD ?",
+                questions: [
+                  { q: "Je mange une pomme.", options: ["Je", "mange", "une pomme", "avec mes amis"], answer: 2 },
+                  { q: "Il lit un livre passionnant.", options: ["Il", "lit", "un livre", "passionnant"], answer: 2 },
+                  { q: "Nous regardons la télévision.", options: ["Nous", "regardons", "la télévision", "beaucoup"], answer: 2 },
+                  { q: "Tu écoutes la radio.", options: ["Tu", "écoutes", "la radio", "bien"], answer: 2 },
+                  { q: "Elle a écrit une lettre à son ami.", options: ["Elle", "a écrit", "une lettre", "à son ami"], answer: 2 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Relier Verbe et COD",
+                pairs: [
+                  { left: "Regarder", right: "un film" },
+                  { left: "Écrire", right: "un message" },
+                  { left: "Boire", right: "de l'eau" },
+                  { left: "Voir", right: "une voiture" },
+                  { left: "Chanter", right: "une chanson" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "Le COD est un complément essentiel du verbe.", answer: true },
+                  { q: "Le COD répond à la question 'À qui ?' ou 'À quoi ?'.", answer: false },
+                  { q: "On peut toujours supprimer le COD dans une phrase.", answer: false },
+                  { q: "Le COD est directement lié au verbe (sans préposition).", answer: true },
+                  { q: "Dans 'je parle à ma sœur', 'à ma sœur' est le COD.", answer: false }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Complétez avec un COD",
+                questions: [
+                  { text: "Le chat mange ____.", answer: "sa pâtée" },
+                  { text: "Nous aimons ____.", answer: "les vacances" },
+                  { text: "Elle achète ____.", answer: "des fleurs" },
+                  { text: "J'ai trouvé ____.", answer: "mon cahier" },
+                  { text: "Il regarde ____.", answer: "les étoiles" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 5 : Identifier le COD",
+                questions: [
+                  { q: "Tu portes ton manteau.", answer: "ton manteau" },
+                  { q: "Nous avons une nouvelle voiture.", answer: "une nouvelle voiture" },
+                  { q: "Le boulanger prépare le pain.", answer: "le pain" },
+                  { q: "Les enfants mangent leurs tartines.", answer: "leurs tartines" },
+                  { q: "Elle écoute la musique.", answer: "la musique" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 6 : Phrase avec COD",
+                questions: [
+                  { q: "Lire", hint: "Il lit un journal." },
+                  { q: "Aimer", hint: "J'aime le sport." },
+                  { q: "Faire", hint: "Nous faisons un gâteau." },
+                  { q: "Donner", hint: "Elle donne son vélo." },
+                  { q: "Ouvrir", hint: "Vous ouvrez la porte." }
+                ]
+              }
+            ]
+          },
+          {
+            id: 9,
+            title: "9. La fonction COI",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : Quel est le COI ?",
+                questions: [
+                  { q: "Je pense à mes amis.", options: ["Je", "pense", "à", "à mes amis"], answer: 3 },
+                  { q: "Il parle de son voyage.", options: ["Il", "parle", "de son voyage", "passionnant"], answer: 2 },
+                  { q: "Nous téléphonons à notre grand-mère.", options: ["Nous", "téléphonons", "à notre grand-mère", "souvent"], answer: 2 },
+                  { q: "Tu te souviens de ce film ?", options: ["Tu te souviens", "souviens", "de ce film", "film"], answer: 2 },
+                  { q: "Elle a besoin d'aide.", options: ["Elle a", "besoin", "d'aide", "d'"], answer: 2 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Relier Verbe et COI",
+                pairs: [
+                  { left: "Croire", right: "à ses rêves" },
+                  { left: "Parler", right: "de la pluie" },
+                  { left: "Penser", right: "à toi" },
+                  { left: "Téléphoner", right: "à ma sœur" },
+                  { left: "Douter", right: "de sa réussite" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "Le COI est introduit par une préposition (à, de, pour...).", answer: true },
+                  { q: "Le COI répond à la question 'Qui ?' ou 'Quoi ?'.", answer: false },
+                  { q: "On peut déplacer le COI dans la phrase.", answer: false },
+                  { q: "Le COI et le COD sont la même chose.", answer: false },
+                  { q: "Dans 'je mange ma soupe', 'ma soupe' est le COI.", answer: false }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Complétez avec un COI",
+                questions: [
+                  { text: "Je parle ____.", answer: "à mon voisin" },
+                  { text: "Il rêve ____.", answer: "de vacances" },
+                  { text: "Elle s'habitue ____.", answer: "à la vie" },
+                  { text: "Nous discutons ____.", answer: "du spectacle" },
+                  { text: "Vous répondez ____.", answer: "à la question" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 5 : Identifier le COI",
+                questions: [
+                  { q: "Tu penses à la fête.", answer: "à la fête" },
+                  { q: "Nous avons besoin de repos.", answer: "de repos" },
+                  { q: "Le professeur parle des animaux.", answer: "des animaux" },
+                  { q: "Les élèves obéissent à la maîtresse.", answer: "à la maîtresse" },
+                  { q: "Elle se rappelle de son enfance.", answer: "de son enfance" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 6 : Phrase avec COI",
+                questions: [
+                  { q: "Croire", hint: "Il croit à la magie." },
+                  { q: "Se souvenir", hint: "Je me souviens de ce jour." },
+                  { q: "Demander", hint: "Elle demande à son ami." },
+                  { q: "Rêver", hint: "Nous rêvons de voyager." },
+                  { q: "Obéir", hint: "Le chien obéit à son maître." }
+                ]
+              }
+            ]
+          },
+          {
+            id: 10,
+            title: "10. Les Pronoms personnels sujets",
+            exercises: [
+              {
+                type: "qcm",
+                title: "Exercice 1 : Quel est le pronom sujet ?",
+                questions: [
+                  { q: "Je vais à l'école.", options: ["vais", "à", "l'école", "Je"], answer: 3 },
+                  { q: "Il mange ici.", options: ["mange", "ici", "Il", "ici"], answer: 2 },
+                  { q: "Elles sont gentilles.", options: ["sont", "gentilles", "Elles", "Elle"], answer: 2 },
+                  { q: "Vous avez raison.", options: ["avez", "raison", "Vous", "avons"], answer: 2 },
+                  { q: "Où es-tu ?", options: ["Où", "es", "tu", "Où es"], answer: 2 }
+                ]
+              },
+              {
+                type: "matching",
+                title: "Exercice 2 : Relier Sujet et Pronom",
+                pairs: [
+                  { left: "Le garçon", right: "Il" },
+                  { left: "Les filles", right: "Elles" },
+                  { left: "Mon amie et moi", right: "Nous" },
+                  { left: "Le vélo", right: "Il" },
+                  { left: "Tu et Pierre", right: "Vous" }
+                ]
+              },
+              {
+                type: "truefalse",
+                title: "Exercice 3 : Vrai/Faux",
+                questions: [
+                  { q: "Les pronoms personnels sujets servent à éviter de répéter le nom.", answer: true },
+                  { q: "Le pronom personnel sujet est toujours placé après le verbe.", answer: false },
+                  { q: "Le pronom 'vous' peut désigner une seule personne (politesse).", answer: true },
+                  { q: "Le pronom 'je' est toujours précédé d'une apostrophe (j').", answer: false },
+                  { q: "Les pronoms sujets sont je, tu, il/elle/on, nous, vous, ils/elles.", answer: true }
+                ]
+              },
+              {
+                type: "fill",
+                title: "Exercice 4 : Complétez avec le pronom",
+                questions: [
+                  { text: "____ mange un fruit. (Je/Nous)", answer: "Je" },
+                  { text: "____ courent dans le parc. (Elles/Ils)", answer: "Elles" },
+                  { text: "____ est très rapide. (Il/Elle)", answer: "Il" },
+                  { text: "____ faites du sport. (Vous/Tu)", answer: "Vous" },
+                  { text: "____ lisons une histoire. (Nous/Vous)", answer: "Nous" }
+                ]
+              },
+              {
+                type: "identify",
+                title: "Exercice 5 : Remplacer le sujet",
+                questions: [
+                  { q: "Mon père travaille.", answer: "Il" },
+                  { q: "La voiture roule.", answer: "Elle" },
+                  { q: "Mes amis et moi voyageons.", answer: "Nous" },
+                  { q: "Les livres sont neufs.", answer: "Ils" },
+                  { q: "Marie et toi venez ?", answer: "Vous" }
+                ]
+              },
+              {
+                type: "writing",
+                title: "Exercice 6 : Phrase avec pronom",
+                questions: [
+                  { q: "Tu", hint: "Tu lis un livre." },
+                  { q: "Nous", hint: "Nous marchons ensemble." },
+                  { q: "Elle", hint: "Elle a faim." },
+                  { q: "Ils", hint: "Ils jouent au foot." },
+                  { q: "Vous", hint: "Vous écoutez la radio." }
+                ]
+              }
+            ]
+          }
+        ];
+
+        // --- SYSTÈME DE PROGRESSION (LocalStorage) ---
+        const STORAGE_KEY = 'grammaire_progress';
+
+        function loadProgress() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            // Structure initiale : chaque exercice a un score et un statut
+            const progress = {};
+            grammarData.forEach(chapter => {
+                progress[chapter.id] = {};
+                chapter.exercises.forEach((ex, idx) => {
+                    progress[chapter.id][idx] = { score: 0, completed: false, unlocked: chapter.id === 1 && idx === 0 };
+                });
+            });
+            return progress;
+        }
+
+        function saveProgress(progress) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        }
+
+        function unlockNextExercise(chapterId, exerciseIndex) {
+            const chapter = grammarData.find(c => c.id === chapterId);
+            if (exerciseIndex + 1 < chapter.exercises.length) {
+                progressData[chapterId][exerciseIndex + 1].unlocked = true;
+            } else {
+                // Débloquer le premier exercice du chapitre suivant
+                const nextChapter = grammarData.find(c => c.id === chapterId + 1);
+                if (nextChapter) {
+                    progressData[nextChapter.id][0].unlocked = true;
+                }
+            }
+            saveProgress(progressData);
+        }
+
+        function isExerciseUnlocked(chapterId, exerciseIndex) {
+            return progressData[chapterId] && progressData[chapterId][exerciseIndex] && progressData[chapterId][exerciseIndex].unlocked;
+        }
+
+        function isChapterUnlocked(chapterId) {
+            if (chapterId === 1) return true;
+            // Un chapitre est débloqué si tous les exercices du chapitre précédent sont complétés
+            const prevChapter = grammarData.find(c => c.id === chapterId - 1);
+            if (!prevChapter) return false;
+            return prevChapter.exercises.every((ex, idx) => progressData[chapterId - 1][idx].completed);
+        }
+
+        function getChapterProgress(chapterId) {
+            const chapter = grammarData.find(c => c.id === chapterId);
+            const completed = chapter.exercises.filter((ex, idx) => progressData[chapterId][idx].completed).length;
+            return { completed, total: chapter.exercises.length };
+        }
+
+        function getTotalProgress() {
+            let completed = 0;
+            let total = 0;
+            grammarData.forEach(chapter => {
+                chapter.exercises.forEach((ex, idx) => {
+                    total++;
+                    if (progressData[chapter.id][idx].completed) completed++;
+                });
+            });
+            return { completed, total };
+        }
+
+        function getBadgeCount() {
+            let badges = 0;
+            grammarData.forEach(chapter => {
+                const progress = getChapterProgress(chapter.id);
+                if (progress.completed === progress.total) badges++;
+            });
+            return badges;
+        }
+
+        function getTotalScore() {
+            let score = 0;
+            grammarData.forEach(chapter => {
+                chapter.exercises.forEach((ex, idx) => {
+                    score += progressData[chapter.id][idx].score || 0;
+                });
+            });
+            return score;
+        }
+
+        // --- SYSTÈME DE BADGES ---
+        function checkAndShowBadge(chapterId) {
+            const progress = getChapterProgress(chapterId);
+            if (progress.completed === progress.total) {
+                const chapter = grammarData.find(c => c.id === chapterId);
+                showBadgeUnlock(chapter.title);
+            }
+        }
+
+        function showBadgeUnlock(chapterTitle) {
+            const overlay = document.getElementById('badge-overlay');
+            const badge = document.getElementById('badge-unlock');
+            const icon = document.getElementById('badge-icon');
+            const title = document.getElementById('badge-title');
+            const message = document.getElementById('badge-message');
+
+            icon.innerHTML = '🏆';
+            icon.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+            title.textContent = 'Félicitations !';
+            message.textContent = `Vous avez terminé : ${chapterTitle}`;
+
+            overlay.classList.add('show');
+            badge.classList.add('show');
+        }
+
+        function closeBadge() {
+            document.getElementById('badge-overlay').classList.remove('show');
+            document.getElementById('badge-unlock').classList.remove('show');
+        }
+
+        // --- LOGIQUE DE L'APPLICATION ---
+        let progressData = loadProgress();
+        let state = {
+            chapterId: 1,
+            exerciseIndex: 0,
+            answers: {},
+            showResults: false,
+            currentScore: 0
+        };
+
+        // Initialisation
+        function init() {
+            renderSidebar();
+            renderApp();
+            updateGlobalStats();
+        }
+
+        function updateGlobalStats() {
+            const totalProgress = getTotalProgress();
+            const percentage = Math.round((totalProgress.completed / totalProgress.total) * 100);
+            document.getElementById('global-progress').style.width = percentage + '%';
+            document.getElementById('total-completed').textContent = `${totalProgress.completed}/${totalProgress.total}`;
+            document.getElementById('total-badges').textContent = getBadgeCount();
+            document.getElementById('total-score').textContent = getTotalScore();
+        }
+
+        function renderSidebar() {
+            const list = document.getElementById('chapter-list');
+            list.innerHTML = '';
+            grammarData.forEach(chapter => {
+                const btn = document.createElement('button');
+                const progress = getChapterProgress(chapter.id);
+                const isUnlocked = isChapterUnlocked(chapter.id);
+                const isCompleted = progress.completed === progress.total;
+                
+                let className = 'nav-btn';
+                if (state.chapterId === chapter.id) className += ' active';
+                if (!isUnlocked) className += ' locked';
+                if (isCompleted) className += ' completed';
+                
+                btn.className = className;
+                btn.disabled = !isUnlocked;
+                
+                const titleSpan = document.createElement('span');
+                titleSpan.textContent = chapter.title;
+                
+                const statusSpan = document.createElement('span');
+                statusSpan.className = isCompleted ? 'chapter-status complete' : 'chapter-status';
+                statusSpan.textContent = `${progress.completed}/${progress.total}`;
+                
+                btn.appendChild(titleSpan);
+                btn.appendChild(statusSpan);
+                
+                if (isUnlocked) {
+                    btn.onclick = () => setChapter(chapter.id);
+                }
+                
+                list.appendChild(btn);
+            });
+        }
+
+        function setChapter(id) {
+            state.chapterId = id;
+            state.exerciseIndex = 0;
+            resetState();
+            renderSidebar();
+            renderApp();
+        }
+
+        function setExercise(index) {
+            if (!isExerciseUnlocked(state.chapterId, index)) return;
+            state.exerciseIndex = index;
+            resetState();
+            renderApp();
+        }
+
+        function resetState() {
+            state.answers = {};
+            state.showResults = false;
+            state.currentScore = 0;
+        }
+
+        function renderApp() {
+            const currentChapter = grammarData.find(c => c.id === state.chapterId);
+            const currentExercise = currentChapter.exercises[state.exerciseIndex];
+            const isUnlocked = isExerciseUnlocked(state.chapterId, state.exerciseIndex);
+
+            // Titre Chapitre
+            document.getElementById('chapter-title').textContent = currentChapter.title;
+
+            // Onglets
+            const tabsContainer = document.getElementById('tabs');
+            tabsContainer.innerHTML = '';
+            currentChapter.exercises.forEach((ex, idx) => {
+                const btn = document.createElement('button');
+                const exUnlocked = isExerciseUnlocked(state.chapterId, idx);
+                const exCompleted = progressData[state.chapterId][idx].completed;
+                
+                let className = 'tab-btn';
+                if (state.exerciseIndex === idx) className += ' active';
+                if (!exUnlocked) className += ' locked';
+                if (exCompleted) className += ' completed';
+                
+                btn.className = className;
+                btn.textContent = `Ex ${idx + 1}`;
+                btn.disabled = !exUnlocked;
+                
+                if (exUnlocked) {
+                    btn.onclick = () => setExercise(idx);
+                }
+                
+                tabsContainer.appendChild(btn);
+            });
+
+            // Titre Exercice
+            document.getElementById('exercise-title').textContent = currentExercise.title;
+
+            // Score Display
+            const scoreDisplay = document.getElementById('score-display');
+            if (state.showResults) {
+                scoreDisplay.style.display = 'block';
+                document.getElementById('score-number').textContent = `${state.currentScore}/${currentExercise.questions.length}`;
+                
+                const scoreMessage = document.getElementById('score-message');
+                if (state.currentScore >= 4) {
+                    scoreMessage.className = 'score-message success';
+                    scoreMessage.textContent = '🎉 Excellent ! Exercice suivant débloqué !';
+                } else {
+                    scoreMessage.className = 'score-message warning';
+                    scoreMessage.textContent = '⚠️ Il faut au moins 4 bonnes réponses pour continuer. Réessaye !';
+                }
+            } else {
+                scoreDisplay.style.display = 'none';
+            }
+
+            // Current Score Badge
+            const currentScoreBadge = document.getElementById('current-score');
+            if (state.showResults) {
+                currentScoreBadge.style.display = 'block';
+                currentScoreBadge.textContent = `Score: ${state.currentScore}/${currentExercise.questions.length}`;
+            } else {
+                currentScoreBadge.style.display = 'none';
+            }
+
+            // Boutons Action
+            const btnReset = document.getElementById('btn-reset');
+            const btnAction = document.getElementById('btn-action');
+            const btnNext = document.getElementById('btn-next');
+
+            if (state.showResults) {
+                btnAction.style.display = 'none';
+                btnReset.style.display = 'inline-block';
+                
+                if (state.currentScore >= 4) {
+                    btnNext.style.display = 'inline-block';
+                } else {
+                    btnNext.style.display = 'none';
+                }
+            } else {
+                btnAction.style.display = 'inline-block';
+                btnReset.style.display = 'none';
+                btnNext.style.display = 'none';
+            }
+
+            // Rendu de l'exercice
+            const container = document.getElementById('exercise-container');
+            container.innerHTML = '';
+
+            // Overlay si verrouillé
+            if (!isUnlocked) {
+                const overlay = document.createElement('div');
+                overlay.className = 'locked-overlay';
+                overlay.innerHTML = '🔒';
+                container.appendChild(overlay);
+                btnAction.disabled = true;
+                return;
+            } else {
+                btnAction.disabled = false;
+            }
+
+            if (currentExercise.type === 'qcm') renderQCM(container, currentExercise);
+            else if (currentExercise.type === 'matching') renderMatching(container, currentExercise);
+            else if (currentExercise.type === 'truefalse') renderTrueFalse(container, currentExercise);
+            else if (['fill', 'identify', 'writing'].includes(currentExercise.type)) renderInputExercise(container, currentExercise);
+        }
+
+        // --- RENDU DES TYPES D'EXERCICES ---
+
+        function renderQCM(container, exercise) {
+            exercise.questions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                const title = document.createElement('span');
+                title.className = 'question-text';
+                title.textContent = `${idx + 1}. ${q.q}`;
+                card.appendChild(title);
+
+                q.options.forEach((opt, optIdx) => {
+                    const btn = document.createElement('button');
+                    let className = 'btn-option';
+                    
+                    if (state.showResults) {
+                        if (optIdx === q.answer) className += ' correct';
+                        else if (state.answers[idx] === optIdx) className += ' incorrect';
+                    } else {
+                        if (state.answers[idx] === optIdx) className += ' selected';
+                    }
+                    
+                    btn.className = className;
+                    btn.textContent = opt;
+                    btn.onclick = () => {
+                        if (!state.showResults) {
+                            state.answers[idx] = optIdx;
+                            renderApp();
+                        }
+                    };
+                    card.appendChild(btn);
+                });
+                container.appendChild(card);
+            });
+        }
+
+        function renderMatching(container, exercise) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const options = [...exercise.pairs].sort((a, b) => a.right.localeCompare(b.right));
+
+            exercise.pairs.forEach((pair, idx) => {
+                const row = document.createElement('div');
+                row.className = 'matching-row';
+                
+                const left = document.createElement('div');
+                left.style.fontWeight = '500';
+                left.textContent = pair.left;
+                
+                const select = document.createElement('select');
+                select.disabled = state.showResults;
+                
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = "";
+                defaultOpt.textContent = "Choisir...";
+                select.appendChild(defaultOpt);
+
+                options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.right;
+                    option.textContent = opt.right;
+                    select.appendChild(option);
+                });
+
+                select.value = state.answers[idx] || "";
+                select.onchange = (e) => {
+                    state.answers[idx] = e.target.value;
+                };
+
+                if (state.showResults) {
+                    const isCorrect = state.answers[idx] === pair.right;
+                    select.style.borderColor = isCorrect ? 'var(--success)' : 'var(--error)';
+                    select.style.backgroundColor = isCorrect ? 'var(--success-bg)' : 'var(--error-bg)';
+                }
+
+                row.appendChild(left);
+                row.appendChild(select);
+                card.appendChild(row);
+
+                if (state.showResults && state.answers[idx] !== pair.right) {
+                    const correction = document.createElement('div');
+                    correction.className = 'feedback-text text-success';
+                    correction.style.marginBottom = '15px';
+                    correction.style.textAlign = 'right';
+                    correction.textContent = `Réponse : ${pair.right}`;
+                    card.appendChild(correction);
+                }
+            });
+            container.appendChild(card);
+        }
+
+        function renderTrueFalse(container, exercise) {
+            exercise.questions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.display = 'flex';
+                card.style.justifyContent = 'space-between';
+                card.style.alignItems = 'center';
+
+                const text = document.createElement('div');
+                text.textContent = q.q;
+                text.style.flex = '1';
+                text.style.marginRight = '20px';
+                text.style.fontWeight = '500';
+
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'tf-container';
+
+                const btnTrue = createTFButton(idx, true, q.answer, "Vrai");
+                const btnFalse = createTFButton(idx, false, q.answer, "Faux");
+
+                btnContainer.appendChild(btnTrue);
+                btnContainer.appendChild(btnFalse);
+
+                card.appendChild(text);
+                card.appendChild(btnContainer);
+                container.appendChild(card);
+            });
+        }
+
+        function createTFButton(qIdx, value, correctAnswer, label) {
+            const btn = document.createElement('button');
+            let className = 'tf-btn';
+            
+            if (state.showResults) {
+                if (value === correctAnswer) className += ' correct';
+                else if (state.answers[qIdx] === value) className += ' incorrect';
+            } else {
+                if (state.answers[qIdx] === value) className += ' selected';
+            }
+
+            btn.className = className;
+            btn.textContent = label;
+            btn.onclick = () => {
+                if (!state.showResults) {
+                    state.answers[qIdx] = value;
+                    renderApp();
+                }
+            };
+            return btn;
+        }
+
+        function renderInputExercise(container, exercise) {
+            exercise.questions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const label = document.createElement('label');
+                label.className = 'question-text';
+                label.textContent = q.text || q.q;
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = exercise.type === 'writing' ? "Écrivez votre phrase..." : "Votre réponse...";
+                input.value = state.answers[idx] || "";
+                input.disabled = state.showResults && exercise.type !== 'writing';
+                input.oninput = (e) => state.answers[idx] = e.target.value;
+
+                const correctAnswer = q.answer || q.hint;
+
+                if (state.showResults) {
+                    const userAnswer = (state.answers[idx] || "").trim().toLowerCase();
+                    const correct = correctAnswer.toLowerCase();
+                    const isCorrect = userAnswer === correct;
+                    
+                    if (exercise.type === 'writing') {
+                        input.style.borderColor = '#93c5fd';
+                    } else {
+                        input.className = isCorrect ? 'correct' : 'incorrect';
+                        input.style.borderColor = isCorrect ? 'var(--success)' : 'var(--error)';
+                        input.style.backgroundColor = isCorrect ? 'var(--success-bg)' : 'var(--error-bg)';
+                    }
+                }
+
+                card.appendChild(label);
+                card.appendChild(input);
+
+                if (state.showResults) {
+                    const feedback = document.createElement('div');
+                    feedback.className = exercise.type === 'writing' ? 'feedback-text text-info' : 'feedback-text text-success';
+                    feedback.textContent = exercise.type === 'writing' ? `Exemple : ${correctAnswer}` : `Réponse correcte : ${correctAnswer}`;
+                    card.appendChild(feedback);
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        // --- CALCUL DU SCORE ---
+        function calculateScore() {
+            const currentChapter = grammarData.find(c => c.id === state.chapterId);
+            const currentExercise = currentChapter.exercises[state.exerciseIndex];
+            let score = 0;
+
+            if (currentExercise.type === 'qcm') {
+                currentExercise.questions.forEach((q, idx) => {
+                    if (state.answers[idx] === q.answer) score++;
+                });
+            } else if (currentExercise.type === 'matching') {
+                currentExercise.pairs.forEach((pair, idx) => {
+                    if (state.answers[idx] === pair.right) score++;
+                });
+            } else if (currentExercise.type === 'truefalse') {
+                currentExercise.questions.forEach((q, idx) => {
+                    if (state.answers[idx] === q.answer) score++;
+                });
+            } else if (['fill', 'identify'].includes(currentExercise.type)) {
+                currentExercise.questions.forEach((q, idx) => {
+                    const userAnswer = (state.answers[idx] || "").trim().toLowerCase();
+                    const correctAnswer = (q.answer || q.hint).toLowerCase();
+                    if (userAnswer === correctAnswer) score++;
+                });
+            } else if (currentExercise.type === 'writing') {
+                // Pour l'écriture, on donne le score maximum si l'enfant a écrit quelque chose
+                currentExercise.questions.forEach((q, idx) => {
+                    if (state.answers[idx] && state.answers[idx].trim().length > 0) score++;
+                });
+            }
+
+            return score;
+        }
+
+        function checkAnswers() {
+            state.currentScore = calculateScore();
+            state.showResults = true;
+
+            // Sauvegarder le score
+            progressData[state.chapterId][state.exerciseIndex].score = state.currentScore;
+
+            // Si score >= 4, marquer comme complété et débloquer le suivant
+            if (state.currentScore >= 4) {
+                progressData[state.chapterId][state.exerciseIndex].completed = true;
+                unlockNextExercise(state.chapterId, state.exerciseIndex);
+                
+                // Vérifier si le chapitre est complété pour afficher le badge
+                setTimeout(() => {
+                    checkAndShowBadge(state.chapterId);
+                }, 500);
+            }
+
+            saveProgress(progressData);
+            updateGlobalStats();
+            renderSidebar();
+            renderApp();
+        }
+
+        function resetExercise() {
+            state.answers = {};
+            state.showResults = false;
+            state.currentScore = 0;
+            renderApp();
+        }
+
+        function goToNextExercise() {
+            const currentChapter = grammarData.find(c => c.id === state.chapterId);
+            
+            if (state.exerciseIndex + 1 < currentChapter.exercises.length) {
+                // Exercice suivant dans le même chapitre
+                state.exerciseIndex++;
+            } else {
+                // Premier exercice du chapitre suivant
+                const nextChapter = grammarData.find(c => c.id === state.chapterId + 1);
+                if (nextChapter && isChapterUnlocked(nextChapter.id)) {
+                    state.chapterId = nextChapter.id;
+                    state.exerciseIndex = 0;
+                }
+            }
+            
+            resetState();
+            renderSidebar();
+            renderApp();
+        }
+
+        // Lancement
+        init();
+
+    </script>
+</body>
+</html>
